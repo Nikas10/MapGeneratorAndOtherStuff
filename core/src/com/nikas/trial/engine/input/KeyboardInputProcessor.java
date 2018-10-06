@@ -2,6 +2,8 @@ package com.nikas.trial.engine.input;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.nikas.trial.engine.configuration.CameraOffset;
 import com.nikas.trial.screens.GameScreen;
 
 /**
@@ -18,15 +20,43 @@ public class KeyboardInputProcessor implements InputProcessor {
 
     @Override
     public boolean keyDown(int keycode) {
+        CameraOffset cameraOffset = gameScreen.getCameraOffset();
         switch (keycode) {
+            // z x rendering scale (deprecated)
             case Input.Keys.Z : {
-                gameScreen.getCameraOffset().setRenderSquareLength(
-                        gameScreen.getCameraOffset().getRenderSquareLength() + 1);
+                cameraOffset.setRenderSquareLength(
+                        cameraOffset.getRenderSquareLength() + 1);
                 break;
             }
             case Input.Keys.X : {
-                gameScreen.getCameraOffset().setRenderSquareLength(
-                        gameScreen.getCameraOffset().getRenderSquareLength() - 1);
+                cameraOffset.setRenderSquareLength(
+                        cameraOffset.getRenderSquareLength() - 1);
+                break;
+            }
+            //q e zooming
+            case Input.Keys.Q : {
+                cameraOffset.setZoomDelta(-1f);
+                break;
+            }
+            case Input.Keys.E : {
+                cameraOffset.setZoomDelta(1f);
+                break;
+            }
+            //wasd
+            case Input.Keys.W : {
+                cameraOffset.setVerticalDelta((float)cameraOffset.getRenderSquareLength());
+                break;
+            }
+            case Input.Keys.A : {
+                cameraOffset.setHorizontalDelta(-(float)cameraOffset.getRenderSquareLength());
+                break;
+            }
+            case Input.Keys.S : {
+                cameraOffset.setVerticalDelta(-(float)cameraOffset.getRenderSquareLength());
+                break;
+            }
+            case Input.Keys.D : {
+                cameraOffset.setHorizontalDelta((float)cameraOffset.getRenderSquareLength());
                 break;
             }
         }
@@ -35,6 +65,35 @@ public class KeyboardInputProcessor implements InputProcessor {
 
     @Override
     public boolean keyUp(int keycode) {
+        //q e zooming
+        CameraOffset cameraOffset = gameScreen.getCameraOffset();
+        switch (keycode) {
+            case Input.Keys.Q : {
+                cameraOffset.setZoomDelta(0.0f);
+                break;
+            }
+            case Input.Keys.E : {
+                cameraOffset.setZoomDelta(0.0f);
+                break;
+            }
+            //wasd
+            case Input.Keys.W : {
+                cameraOffset.setVerticalDelta(0.0f);
+                break;
+            }
+            case Input.Keys.A : {
+                cameraOffset.setHorizontalDelta(0.0f);
+                break;
+            }
+            case Input.Keys.S : {
+                cameraOffset.setVerticalDelta(0.0f);
+                break;
+            }
+            case Input.Keys.D : {
+                cameraOffset.setHorizontalDelta(0.0f);
+                break;
+            }
+        }
         return true;
     }
 

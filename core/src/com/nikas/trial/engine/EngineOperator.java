@@ -46,22 +46,15 @@ public class EngineOperator {
         MapGenerationParameters mapGen = game.getMapGenerationParameters();
         ImmutableArray<Entity> entities = gameEngine.getEntitiesFor(Family.all(PositionComponent.class).get());
         Integer primitiveSize = cameraOffset.getRenderSquareLength();
-        Float width = gameScreen.getStage().getWidth();
-        Float heigth = gameScreen.getStage().getHeight();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Entity entity: entities) {
             PositionComponent positionComponent = MapperFactory.getPositions().get(entity);
             Color color = evaluateHeightColor(positionComponent.getZ(),mapGen);
-            if (((positionComponent.getX() - cameraOffset.getXOffset()) * primitiveSize > width)
-                    || ((positionComponent.getY() - cameraOffset.getYOffset()) * primitiveSize > heigth)) continue;
-            if (positionComponent.getX() >= cameraOffset.getXOffset()
-                    && positionComponent.getY() >= cameraOffset.getYOffset()) {
-                shapeRenderer.rect((positionComponent.getX() - cameraOffset.getXOffset()) * primitiveSize,
-                        (positionComponent.getY() - cameraOffset.getYOffset()) * primitiveSize,
-                        primitiveSize,
-                        primitiveSize,
-                        color, color, color, color);
-            }
+            shapeRenderer.rect(positionComponent.getX() * primitiveSize,
+                    positionComponent.getY() * primitiveSize,
+                    primitiveSize,
+                    primitiveSize,
+                    color, color, color, color);
         }
         shapeRenderer.end();
     }

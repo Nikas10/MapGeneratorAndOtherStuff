@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -11,6 +12,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.nikas.trial.GameLauncher;
+import com.nikas.trial.engine.CameraManager;
 import com.nikas.trial.engine.configuration.CameraOffset;
 import com.nikas.trial.engine.input.KeyboardInputProcessor;
 import com.nikas.trial.util.GenerationUtils;
@@ -24,7 +26,9 @@ public class GameScreen implements Screen {
     private TextButton playButton;
     private ShapeRenderer shapeRenderer;
     private GenerationUtils generationUtils = new GenerationUtils();
-    private CameraOffset cameraOffset = new CameraOffset(0,0,5);
+    private CameraManager cameraManager;
+    private OrthographicCamera camera;
+    private CameraOffset cameraOffset = new CameraOffset(0,0,10,0.0f,0.0f,0.0f);
 
     public GameScreen(GameLauncher game) {
         this.game = game;
@@ -63,10 +67,15 @@ public class GameScreen implements Screen {
     public void show() {
         this.stage = new Stage(new StretchViewport(game.getScreenParameters().getScreenWidth(),
                 game.getScreenParameters().getScreenHeight()));
+        this.cameraManager = new CameraManager(new OrthographicCamera(stage.getWidth() / 4,
+                stage.getWidth() / 4 * (stage.getHeight() / stage.getWidth())));
+        this.camera = cameraManager.getCamera();
         InputMultiplexer multiplexer = new InputMultiplexer();
         Gdx.input.setInputProcessor(multiplexer);
         multiplexer.addProcessor(stage);
         multiplexer.addProcessor(new KeyboardInputProcessor(this));
+        camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
+        camera.update();
         defineEntities();
         defineUiComponents();
     }
@@ -75,6 +84,9 @@ public class GameScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+        cameraManager.applyCameraChanges(cameraOffset);
+        camera.update();
+        shapeRenderer.setProjectionMatrix(camera.combined);
         game.getEngineOperator().processMap(this, shapeRenderer);
         drawUi();
         stage.act();
