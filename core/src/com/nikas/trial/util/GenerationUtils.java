@@ -60,17 +60,18 @@ public class GenerationUtils {
         Float mapHeight = mapGenerationParameters.getMapMaxLandHeight();
         Queue<CoordEntry> renderQueue = new ArrayDeque<>();
         Map<String, CoordEntry> used = new HashMap<>();
-        Queue<CoordEntry> highQueue = new ArrayDeque<>();
         for (int i = 0; i < mapGenerationParameters.getMapHighPointsCount(); i++) {
             Integer x = ThreadLocalRandom.current().nextInt(0, mapSize);
             Integer y = ThreadLocalRandom.current().nextInt(0, mapSize);
             Float height = getRandomGaussianDelta(0.0f, mapHeight);
-            if (randomGen.nextGaussian()>=0)
-                ((ArrayDeque<CoordEntry>) highQueue).addFirst(new CoordEntry(x, y, height));
-            else highQueue.add(new CoordEntry(x, y, height));
+            if (randomGen.nextGaussian()>=0) {
+                ((ArrayDeque<CoordEntry>) renderQueue).addFirst(new CoordEntry(x, y, height));
+            }
+            else {
+                renderQueue.add(new CoordEntry(x, y, height));
+            }
         }
-        highQueue = generateRenderQueue(highQueue, used, mapGenerationParameters);
-        renderQueue.addAll(highQueue);
+        renderQueue = generateRenderQueue(renderQueue, used, mapGenerationParameters);
         map = adjustHeights(map, renderQueue);
         return map;
     }
@@ -80,36 +81,35 @@ public class GenerationUtils {
         Integer mapSize = mapGen.getMapSquareSize();
         Float minHeight = mapGen.getMapMinWaterHeight();
         Float stepDelta = mapGen.getMapHeightGradationLimit();
-        Queue<CoordEntry> neighbors = new ArrayDeque<>();
+        ArrayDeque<CoordEntry> neighbors = new ArrayDeque<>();
         for (CoordEntry entry: queue) {
             Integer x = entry.getX();
             Integer y = entry.getY();
             Float height = entry.getZ();
+            //processing neighbors
             for (int i = 0; i < 8; i++) {
-                if ((x + neighborDeltas[i][0] >= 0) && (x + neighborDeltas[i][0] < mapSize)) {
-                    if ((y + neighborDeltas[i][1] >= 0) && (y + neighborDeltas[i][1] < mapSize)) {
-                        Integer newX = x + neighborDeltas[i][0];
-                        Integer newY = y + neighborDeltas[i][1];
-                        Float currentDelta = getRandomGaussianDelta(0.0f, stepDelta);
-                        if (i > 3) { //diagonal entries
-                            currentDelta = (float)Math.sqrt(2) * currentDelta;
+                if (checkBorders(x, y, mapSize, i)) {
+                    Integer newX = x + neighborDeltas[i][0];
+                    Integer newY = y + neighborDeltas[i][1];
+                    Float currentDelta = getRandomGaussianDelta(0.0f, stepDelta);
+                    if (i > 3) { //diagonal entries
+                        currentDelta = (float)Math.sqrt(2) * currentDelta;
+                    }
+                    currentDelta = -currentDelta;
+                    if (height + currentDelta <= minHeight) continue;
+                    CoordEntry newEntry = new CoordEntry(newX, newY, height + currentDelta);
+                    if (!queue.contains(newEntry) && (!neighbors.contains(newEntry))) {
+                        boolean chaosFactor = randomGen.nextGaussian() >= 0;
+                        boolean draw = true;
+                        if (used.containsKey(newEntry.getId())) {
+                            CoordEntry usedEntry = used.get(newEntry.getId());
+                            draw = checkHeights(usedEntry.getZ(), newEntry.getZ());
                         }
-                        currentDelta = -currentDelta;
-                        if (height + currentDelta <= minHeight) continue;
-                        CoordEntry newEntry = new CoordEntry(newX, newY, height + currentDelta);
-                        if (!queue.contains(newEntry) && (!neighbors.contains(newEntry))) {
-                            boolean chaosFactor = randomGen.nextGaussian() >= 0;
-                            boolean draw = true;
-                            if (used.containsKey(newEntry.getId())) {
-                                CoordEntry usedEntry = used.get(newEntry.getId());
-                                draw = checkHeights(usedEntry.getZ(), newEntry.getZ());
-                            }
-                            if (draw) {
-                                if (chaosFactor) {
-                                    ((ArrayDeque<CoordEntry>) neighbors).addFirst(newEntry);
-                                } else {
-                                    neighbors.add(newEntry);
-                                }
+                        if (draw) {
+                            if (chaosFactor) {
+                                neighbors.addFirst(newEntry);
+                            } else {
+                                neighbors.add(newEntry);
                             }
                         }
                     }
@@ -117,9 +117,13 @@ public class GenerationUtils {
             }
         }
         queue.forEach(element -> used.put(element.getId(), element));
-        queue.addAll(neighbors);
         queue.addAll(generateRenderQueue(neighbors, used, mapGen));
         return queue;
+    }
+
+    private boolean checkBorders(Integer x, Integer y, Integer mapSize, Integer neighbor) {
+        return ((x + neighborDeltas[neighbor][0] >= 0) && (x + neighborDeltas[neighbor][0] < mapSize)) &&
+             ((y + neighborDeltas[neighbor][1] >= 0) && (y + neighborDeltas[neighbor][1] < mapSize));
     }
 
     private boolean checkHeights(Float z1, Float z2) {
