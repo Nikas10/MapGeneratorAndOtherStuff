@@ -42,7 +42,7 @@ public class EngineOperator {
 
     public void processMap(CameraOffset cameraOffset, ShapeRenderer shapeRenderer, MapGenerationParameters mapGen) {
         ImmutableArray<Entity> entities = gameEngine.getEntitiesFor(Family.all(PositionComponent.class).get());
-        Integer primitiveSize = cameraOffset.getRenderSquareLenght();
+        Integer primitiveSize = cameraOffset.getRenderSquareLength();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Entity entity: entities) {
             PositionComponent positionComponent = MapperFactory.getPositions().get(entity);

@@ -8,5 +8,5 @@ import lombok.Data;
 public class CameraOffset {
     private Integer xOffset;
     private Integer yOffset;
-    private Integer renderSquareLenght;
+    private Integer renderSquareLength;
 }
