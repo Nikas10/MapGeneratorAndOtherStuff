@@ -75,7 +75,7 @@ public class GameScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        game.getEngineOperator().processMap(cameraOffset, shapeRenderer, game.getMapGenerationParameters());
+        game.getEngineOperator().processMap(this, shapeRenderer);
         drawUi();
         stage.act();
         stage.draw();

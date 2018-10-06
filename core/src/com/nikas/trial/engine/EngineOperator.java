@@ -14,6 +14,7 @@ import com.nikas.trial.model.component.PositionComponent;
 import com.nikas.trial.model.component.mappers.MapperFactory;
 import com.nikas.trial.engine.configuration.CameraOffset;
 import com.nikas.trial.model.entity.map.MapGenerationParameters;
+import com.nikas.trial.screens.GameScreen;
 import lombok.Getter;
 
 import java.util.Map;
@@ -40,15 +41,19 @@ public class EngineOperator {
         gameEngine = new Engine();
     }
 
-    public void processMap(CameraOffset cameraOffset, ShapeRenderer shapeRenderer, MapGenerationParameters mapGen) {
+    public void processMap(GameScreen gameScreen, ShapeRenderer shapeRenderer) {
+        CameraOffset cameraOffset = gameScreen.getCameraOffset();
+        MapGenerationParameters mapGen = game.getMapGenerationParameters();
         ImmutableArray<Entity> entities = gameEngine.getEntitiesFor(Family.all(PositionComponent.class).get());
         Integer primitiveSize = cameraOffset.getRenderSquareLength();
+        Float width = gameScreen.getStage().getWidth();
+        Float heigth = gameScreen.getStage().getHeight();
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Entity entity: entities) {
             PositionComponent positionComponent = MapperFactory.getPositions().get(entity);
             Color color = evaluateHeightColor(positionComponent.getZ(),mapGen);
-            if (((positionComponent.getX() - cameraOffset.getXOffset()) * primitiveSize > Gdx.graphics.getWidth())
-                    || ((positionComponent.getY() - cameraOffset.getYOffset()) * primitiveSize > Gdx.graphics.getHeight())) continue;
+            if (((positionComponent.getX() - cameraOffset.getXOffset()) * primitiveSize > width)
+                    || ((positionComponent.getY() - cameraOffset.getYOffset()) * primitiveSize > heigth)) continue;
             if (positionComponent.getX() >= cameraOffset.getXOffset()
                     && positionComponent.getY() >= cameraOffset.getYOffset()) {
                 shapeRenderer.rect((positionComponent.getX() - cameraOffset.getXOffset()) * primitiveSize,
@@ -61,16 +66,15 @@ public class EngineOperator {
         shapeRenderer.end();
     }
 
-    //todo parametrized colours (colour packs)
     private Color evaluateHeightColor(Float height, MapGenerationParameters mapGen) {
         //R G B Alpha
         Map<EnvironmentColorNaming, Color> environmentSkin = palette.getEnvironmentColors();
         Float defaultHeight = mapGen.getMapDefaultHeight();
         Float maxHeight = mapGen.getMapMaxLandHeight();
         Float minHeight = mapGen.getMapMinWaterHeight();
-        Color color; //blue
+        Color color;
         float coeff;
-        if (height <= defaultHeight) { //<0 water
+        if (height <= defaultHeight) { // water
             color = new Color(environmentSkin.get(EnvironmentColorNaming.WATER_LOW));
             coeff = (height - minHeight * 0.75f) / (defaultHeight - minHeight * 0.75f);
             return color.lerp(environmentSkin.get(EnvironmentColorNaming.WATER_HIGH), coeff);
