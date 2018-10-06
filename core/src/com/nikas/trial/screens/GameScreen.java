@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.nikas.trial.GameLauncher;
-import com.nikas.trial.model.entity.configuration.CameraOffset;
+import com.nikas.trial.engine.configuration.CameraOffset;
 import com.nikas.trial.util.GenerationUtils;
 
 public class GameScreen implements Screen {
@@ -75,7 +75,6 @@ public class GameScreen implements Screen {
 
     @Override
     public void resize(int width, int height) {
-        game.getEngineOperator().resizeEntities(width, height);
         playButton.setWidth(width / 8);
         playButton.setHeight(height / 16);
         playButton.setPosition(width - playButton.getWidth(),height - playButton.getHeight());

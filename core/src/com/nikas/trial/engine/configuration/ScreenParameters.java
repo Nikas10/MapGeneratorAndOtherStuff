@@ -1,4 +1,4 @@
-package com.nikas.trial.model.entity.configuration;
+package com.nikas.trial.engine.configuration;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
