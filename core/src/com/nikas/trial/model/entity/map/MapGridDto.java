@@ -13,5 +13,5 @@ import java.io.Serializable;
 public class MapGridDto implements Serializable {
     private Integer x = 0;
     private Integer y = 0;
-    private Integer height = 0;
+    private Float height = 0.0f;
 }

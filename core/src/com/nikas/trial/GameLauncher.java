@@ -8,6 +8,7 @@ import com.nikas.trial.model.entity.map.MapGenerationParameters;
 import com.nikas.trial.screens.ScreenFactory;
 import com.nikas.trial.engine.EngineOperator;
 import lombok.Getter;
+import lombok.Setter;
 
 public class GameLauncher extends Game {
 
@@ -20,10 +21,12 @@ public class GameLauncher extends Game {
 	@Getter
 	private ScreenParameters screenParameters;
 	@Getter
+	@Setter
     private MapGenerationParameters mapGenerationParameters = new MapGenerationParameters(200,
 			15,
 			0.0f,
 			9000.0f,
+			-4000.0f,
 			800.0f);
 
 	private void globalInit() {

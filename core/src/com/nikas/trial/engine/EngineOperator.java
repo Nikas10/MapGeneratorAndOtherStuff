@@ -34,9 +34,7 @@ public class EngineOperator {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Entity entity: entities) {
             PositionComponent positionComponent = MapperFactory.getPositions().get(entity);
-            Color color = evaluateHeightColor(positionComponent.getZ(),
-                    mapGen.getMapMaxDeltaHeight(),
-                    mapGen.getMapDefaultHeight());
+            Color color = evaluateHeightColor(positionComponent.getZ(),mapGen);
             if (((positionComponent.getX() - cameraOffset.getXOffset()) * primitiveSize > Gdx.graphics.getWidth())
                     || ((positionComponent.getY() - cameraOffset.getYOffset()) * primitiveSize > Gdx.graphics.getHeight())) continue;
             if (positionComponent.getX() >= cameraOffset.getXOffset()
@@ -54,13 +52,17 @@ public class EngineOperator {
     public void resizeEntities(int width, int height) {
     }
 
-    private Color evaluateHeightColor(Float height, Float maxHeight, Float defaultHeight) {
+    //todo parametrized colours (colour packs)
+    private Color evaluateHeightColor(Float height, MapGenerationParameters mapGen) {
         //R G B Alpha
+        Float defaultHeight = mapGen.getMapDefaultHeight();
+        Float maxHeight = mapGen.getMapMaxLandHeight();
+        Float minHeight = mapGen.getMapMinWaterHeight();
         Color color; //blue
         float coeff;
         if (height <= defaultHeight) { //<0 water
             color = new Color(0.3f, 0.3f, 0.6f, 1);
-            coeff = (height + maxHeight * 0.75f) / (defaultHeight + maxHeight * 0.75f);
+            coeff = (height - minHeight * 0.75f) / (defaultHeight - minHeight * 0.75f);
             color = color.lerp(0.8f,0.8f,0.9f, 1, coeff);
             return color;
         }
@@ -70,7 +72,7 @@ public class EngineOperator {
             color = color.lerp(0.92f,0.76f,0.0f, 1, coeff);
             return color;
         }
-        else { // land
+        else { // high land
             color = new Color(0.92f,0.76f,0.0f, 1);
             coeff = (height - (maxHeight / 2)) / (maxHeight - (maxHeight / 2));
             color = color.lerp(0.63f,0.11f,0.0f, 1, coeff);

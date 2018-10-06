@@ -16,6 +16,7 @@ public class MapGenerationParameters {
     private Integer mapSquareSize = 100;
     private Integer mapHighPointsCount = 1;
     private Float mapDefaultHeight = 0.0f;
-    private Float mapMaxDeltaHeight = 200.0f;
+    private Float mapMaxLandHeight = 200.0f;
+    private Float mapMinWaterHeight = 200.0f;
     private Float mapHeightGradationLimit = 20.0f;
 }

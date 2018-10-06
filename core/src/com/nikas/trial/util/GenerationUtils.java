@@ -18,7 +18,7 @@ public class GenerationUtils {
 
     private static ComponentMapper<PositionComponent> positions = MapperFactory.getPositions();
     private static final Random randomGen = new Random();
-    private static final double gaussianDeviation = (double) 1 / 2; //96% lies in [-1,1] range
+    private static final float gaussianDeviation = (float) 1 / 2; //96% lies in [-1,1] range
     private static Integer[][] neighborDeltas = new Integer[][]{ //8 - 2 array of neighbor location, delta x and y
             {0,1},
             {1,0},
@@ -33,20 +33,20 @@ public class GenerationUtils {
     private Float getRandomGaussianDelta(Float bottom, Float top) {
         Float result = top + 1;
         while (result > top) {
-            result = bottom + Math.abs((int) (randomGen.nextGaussian() * gaussianDeviation * (top - bottom)));
+            result = bottom + Math.abs( (float)randomGen.nextGaussian() * gaussianDeviation * (top - bottom));
         }
         return result;
     }
 
     public List<Entity> generateMap(MapGenerationParameters mapGenerationParameters) {
         Integer mapSize = mapGenerationParameters.getMapSquareSize();
-        Float mapHeight = mapGenerationParameters.getMapMaxDeltaHeight();
+        Float startHeight = mapGenerationParameters.getMapMinWaterHeight();
         Entity[][] map = new Entity[mapSize][mapSize];
         for (int i = 0; i < mapSize; i++) {
             for (int j = 0; j < mapSize; j++ ) {
                 Entity brick = new Entity();
                 brick.add(new IdentificatorComponent("environmentGridElement", DrawGroup.ENVIRONMENT));
-                brick.add(new PositionComponent(i, j, -mapHeight));
+                brick.add(new PositionComponent(i, j, startHeight));
                 map[i][j] = brick;
             }
         }
@@ -57,7 +57,7 @@ public class GenerationUtils {
 
     private Entity[][] generateHeightDeltas(Entity[][] map, MapGenerationParameters mapGenerationParameters) {
         Integer mapSize = mapGenerationParameters.getMapSquareSize();
-        Float mapHeight = mapGenerationParameters.getMapMaxDeltaHeight();
+        Float mapHeight = mapGenerationParameters.getMapMaxLandHeight();
         Queue<CoordEntry> renderQueue = new ArrayDeque<>();
         Map<String, CoordEntry> used = new HashMap<>();
         Queue<CoordEntry> highQueue = new ArrayDeque<>();
@@ -78,6 +78,8 @@ public class GenerationUtils {
     private Queue<CoordEntry> generateRenderQueue(Queue<CoordEntry> queue, Map<String, CoordEntry> used, MapGenerationParameters mapGen) {
         if (queue.isEmpty()) return queue;
         Integer mapSize = mapGen.getMapSquareSize();
+        Float minHeight = mapGen.getMapMinWaterHeight();
+        Float stepDelta = mapGen.getMapHeightGradationLimit();
         Queue<CoordEntry> neighbors = new ArrayDeque<>();
         for (CoordEntry entry: queue) {
             Integer x = entry.getX();
@@ -88,12 +90,12 @@ public class GenerationUtils {
                     if ((y + neighborDeltas[i][1] >= 0) && (y + neighborDeltas[i][1] < mapSize)) {
                         Integer newX = x + neighborDeltas[i][0];
                         Integer newY = y + neighborDeltas[i][1];
-                        Float currentDelta = getRandomGaussianDelta(0.0f, mapGen.getMapHeightGradationLimit());
+                        Float currentDelta = getRandomGaussianDelta(0.0f, stepDelta);
                         if (i > 3) { //diagonal entries
                             currentDelta = (float)Math.sqrt(2) * currentDelta;
                         }
                         currentDelta = -currentDelta;
-                        if (height + currentDelta <= -mapGen.getMapMaxDeltaHeight()) continue;
+                        if (height + currentDelta <= minHeight) continue;
                         CoordEntry newEntry = new CoordEntry(newX, newY, height + currentDelta);
                         if (!queue.contains(newEntry) && (!neighbors.contains(newEntry))) {
                             boolean chaosFactor = randomGen.nextGaussian() >= 0;
@@ -121,10 +123,7 @@ public class GenerationUtils {
     }
 
     private boolean checkHeights(Float z1, Float z2) {
-        if (z2 > z1) {
-                return true;
-        }
-        return false;
+        return z2 > z1;
     }
 
     private Entity[][] adjustHeights(Entity[][] map, Queue<CoordEntry> queue) {
