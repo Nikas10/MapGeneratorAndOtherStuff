@@ -64,7 +64,7 @@ public class EngineOperator {
     public void drawCaches(GameScreen gameScreen) {
         List<Integer> caches = gameScreen.getAvailableCaches();
         SpriteCache spriteCache = gameScreen.getSpriteCache();
-        spriteCache.setProjectionMatrix(gameScreen.getCamera().combined);
+        spriteCache.setProjectionMatrix(gameScreen.getCameraManager().getCamera().combined);
         spriteCache.begin();
         for (Integer i : caches) {
             spriteCache.draw(i);

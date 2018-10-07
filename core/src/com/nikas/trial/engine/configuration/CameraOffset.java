@@ -9,4 +9,5 @@ public class CameraOffset {
     private Float zoomDelta;
     private Float verticalDelta;
     private Float horizontalDelta;
+    private Float rotationDelta;
 }

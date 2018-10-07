@@ -28,8 +28,8 @@ public class GameLauncher extends Game {
 	private ScreenParameters screenParameters;
 	@Getter
 	@Setter
-    private MapGenerationParameters mapGenerationParameters = new MapGenerationParameters(1000,
-			10,
+    private MapGenerationParameters mapGenerationParameters = new MapGenerationParameters(500,
+			15,
 			0.0f,
 			9000.0f,
 			-4000.0f,

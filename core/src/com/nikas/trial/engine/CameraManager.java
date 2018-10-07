@@ -17,6 +17,9 @@ public class CameraManager {
         if (cameraOffset.getVerticalDelta() != 0.0f) {
             camera.translate(0,cameraOffset.getVerticalDelta(),0);
         }
+        if (cameraOffset.getRotationDelta() != 0.0f) {
+            camera.rotate(cameraOffset.getRotationDelta());
+        }
         if (cameraOffset.getZoomDelta() != 0.0f) {
             if (!((camera.zoom <= 1) && (cameraOffset.getZoomDelta() < 0))) {
                 camera.zoom += cameraOffset.getZoomDelta();

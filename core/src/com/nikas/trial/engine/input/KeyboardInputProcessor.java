@@ -22,12 +22,20 @@ public class KeyboardInputProcessor implements InputProcessor {
         CameraOffset cameraOffset = gameScreen.getCameraOffset();
         switch (keycode) {
             //q e zooming
-            case Input.Keys.Q : {
+            case Input.Keys.Z : {
                 cameraOffset.setZoomDelta(-0.2f);
                 break;
             }
-            case Input.Keys.E : {
+            case Input.Keys.X : {
                 cameraOffset.setZoomDelta(0.2f);
+                break;
+            }
+            case Input.Keys.Q : {
+                cameraOffset.setRotationDelta(0.5f);
+                break;
+            }
+            case Input.Keys.E : {
+                cameraOffset.setRotationDelta(-0.5f);
                 break;
             }
             //wasd
@@ -56,12 +64,20 @@ public class KeyboardInputProcessor implements InputProcessor {
         //q e zooming
         CameraOffset cameraOffset = gameScreen.getCameraOffset();
         switch (keycode) {
-            case Input.Keys.Q : {
+            case Input.Keys.Z : {
                 cameraOffset.setZoomDelta(0.0f);
                 break;
             }
-            case Input.Keys.E : {
+            case Input.Keys.X : {
                 cameraOffset.setZoomDelta(0.0f);
+                break;
+            }
+            case Input.Keys.Q : {
+                cameraOffset.setRotationDelta(0.0f);
+                break;
+            }
+            case Input.Keys.E : {
+                cameraOffset.setRotationDelta(0.0f);
                 break;
             }
             //wasd
