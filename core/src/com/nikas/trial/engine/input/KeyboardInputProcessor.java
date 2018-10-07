@@ -2,7 +2,6 @@ package com.nikas.trial.engine.input;
 
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.nikas.trial.engine.configuration.CameraOffset;
 import com.nikas.trial.screens.GameScreen;
 
@@ -22,41 +21,30 @@ public class KeyboardInputProcessor implements InputProcessor {
     public boolean keyDown(int keycode) {
         CameraOffset cameraOffset = gameScreen.getCameraOffset();
         switch (keycode) {
-            // z x rendering scale (deprecated)
-            case Input.Keys.Z : {
-                cameraOffset.setRenderSquareLength(
-                        cameraOffset.getRenderSquareLength() + 1);
-                break;
-            }
-            case Input.Keys.X : {
-                cameraOffset.setRenderSquareLength(
-                        cameraOffset.getRenderSquareLength() - 1);
-                break;
-            }
             //q e zooming
             case Input.Keys.Q : {
-                cameraOffset.setZoomDelta(-1f);
+                cameraOffset.setZoomDelta(-0.2f);
                 break;
             }
             case Input.Keys.E : {
-                cameraOffset.setZoomDelta(1f);
+                cameraOffset.setZoomDelta(0.2f);
                 break;
             }
             //wasd
             case Input.Keys.W : {
-                cameraOffset.setVerticalDelta((float)cameraOffset.getRenderSquareLength());
+                cameraOffset.setVerticalDelta(5.0f);
                 break;
             }
             case Input.Keys.A : {
-                cameraOffset.setHorizontalDelta(-(float)cameraOffset.getRenderSquareLength());
+                cameraOffset.setHorizontalDelta(-5.0f);
                 break;
             }
             case Input.Keys.S : {
-                cameraOffset.setVerticalDelta(-(float)cameraOffset.getRenderSquareLength());
+                cameraOffset.setVerticalDelta(-5.0f);
                 break;
             }
             case Input.Keys.D : {
-                cameraOffset.setHorizontalDelta((float)cameraOffset.getRenderSquareLength());
+                cameraOffset.setHorizontalDelta(5.0f);
                 break;
             }
         }

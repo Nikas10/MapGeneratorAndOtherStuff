@@ -5,17 +5,19 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.Pixmap;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.nikas.trial.GameLauncher;
 import com.nikas.trial.engine.configuration.ColoringConfiguration;
 import com.nikas.trial.engine.configuration.enums.EnvironmentColorNaming;
 import com.nikas.trial.model.component.PositionComponent;
 import com.nikas.trial.model.component.mappers.MapperFactory;
-import com.nikas.trial.engine.configuration.CameraOffset;
 import com.nikas.trial.model.entity.map.MapGenerationParameters;
 import com.nikas.trial.screens.GameScreen;
 import lombok.Getter;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -40,22 +42,34 @@ public class EngineOperator {
         gameEngine = new Engine();
     }
 
-    public void processMap(GameScreen gameScreen, ShapeRenderer shapeRenderer) {
-        CameraOffset cameraOffset = gameScreen.getCameraOffset();
+    public int processMap(GameScreen gameScreen) {
+        SpriteCache spriteCache = gameScreen.getSpriteCache();
         MapGenerationParameters mapGen = game.getMapGenerationParameters();
+        Pixmap map = new Pixmap(mapGen.getMapSquareSize(),
+                mapGen.getMapSquareSize(), Pixmap.Format.RGBA8888);
         ImmutableArray<Entity> entities = gameEngine.getEntitiesFor(Family.all(PositionComponent.class).get());
-        Integer primitiveSize = cameraOffset.getRenderSquareLength();
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         for (Entity entity: entities) {
             PositionComponent positionComponent = MapperFactory.getPositions().get(entity);
             Color color = evaluateHeightColor(positionComponent.getZ(),mapGen);
-            shapeRenderer.rect(positionComponent.getX() * primitiveSize,
-                    positionComponent.getY() * primitiveSize,
-                    primitiveSize,
-                    primitiveSize,
-                    color, color, color, color);
+            map.drawPixel(positionComponent.getX(), positionComponent.getY(), Color.rgba8888(
+                    color
+            ));
         }
-        shapeRenderer.end();
+        Texture texture = new Texture(map, Pixmap.Format.RGBA8888, true);
+        spriteCache.beginCache();
+        spriteCache.add(texture, 0, 0);
+        return spriteCache.endCache();
+    }
+
+    public void drawCaches(GameScreen gameScreen) {
+        List<Integer> caches = gameScreen.getAvailableCaches();
+        SpriteCache spriteCache = gameScreen.getSpriteCache();
+        spriteCache.setProjectionMatrix(gameScreen.getCamera().combined);
+        spriteCache.begin();
+        for (Integer i : caches) {
+            spriteCache.draw(i);
+        }
+        spriteCache.end();
     }
 
     public void clearEntities() {

@@ -5,6 +5,7 @@ import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.SpriteCache;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -18,21 +19,28 @@ import com.nikas.trial.engine.input.KeyboardInputProcessor;
 import com.nikas.trial.util.GenerationUtils;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 public class GameScreen implements Screen {
 
     private GameLauncher game;
     private Stage stage;
+    private SpriteCache spriteCache;
+    private List<Integer> availableCaches;
     private TextButton playButton;
     private ShapeRenderer shapeRenderer;
     private GenerationUtils generationUtils = new GenerationUtils();
     private CameraManager cameraManager;
     private OrthographicCamera camera;
-    private CameraOffset cameraOffset = new CameraOffset(0,0,10,0.0f,0.0f,0.0f);
+    private CameraOffset cameraOffset = new CameraOffset(0.0f,0.0f,0.0f);
 
     public GameScreen(GameLauncher game) {
         this.game = game;
+        this.spriteCache = new SpriteCache(1000, true);
         this.shapeRenderer = new ShapeRenderer();
+        this.availableCaches = new ArrayList<>();
     }
 
     private void defineUiComponents() {
@@ -78,6 +86,7 @@ public class GameScreen implements Screen {
         camera.update();
         game.getEngineOperator().clearEntities();
         defineEntities();
+        availableCaches.add(game.getEngineOperator().processMap(this));
         defineUiComponents();
     }
 
@@ -87,8 +96,7 @@ public class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         cameraManager.applyCameraChanges(cameraOffset);
         camera.update();
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        game.getEngineOperator().processMap(this, shapeRenderer);
+        game.getEngineOperator().drawCaches(this);
         drawUi();
         stage.act();
         stage.draw();

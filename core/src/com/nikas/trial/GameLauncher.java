@@ -29,7 +29,7 @@ public class GameLauncher extends Game {
 	@Getter
 	@Setter
     private MapGenerationParameters mapGenerationParameters = new MapGenerationParameters(1000,
-			15,
+			10,
 			0.0f,
 			9000.0f,
 			-4000.0f,
