@@ -9,7 +9,9 @@ import com.nikas.trial.model.entity.DrawGroup;
 import com.nikas.trial.model.entity.map.MapGenerationParameters;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * Class for staff generation (maps, objects, etc) random based and not
@@ -59,7 +61,7 @@ public class GenerationUtils {
         Integer mapSize = mapGenerationParameters.getMapSquareSize();
         Float mapHeight = mapGenerationParameters.getMapMaxLandHeight();
         Queue<CoordEntry> renderQueue = new ArrayDeque<>();
-        Map<String, CoordEntry> used = new HashMap<>();
+        Map<String, CoordEntry> used = new ConcurrentHashMap<>();
         for (int i = 0; i < mapGenerationParameters.getMapHighPointsCount(); i++) {
             Integer x = ThreadLocalRandom.current().nextInt(0, mapSize);
             Integer y = ThreadLocalRandom.current().nextInt(0, mapSize);
@@ -71,13 +73,24 @@ public class GenerationUtils {
                 renderQueue.add(new CoordEntry(x, y, height));
             }
         }
-        renderQueue = generateRenderQueue(renderQueue, used, mapGenerationParameters);
+        //renderQueue = generateRenderQueue(renderQueue, used, mapGenerationParameters); //deprecated
+        renderQueue = renderQueue.parallelStream().flatMap(coordEntry -> {
+            Queue<CoordEntry> simpleQueue = new ArrayDeque<>();
+            simpleQueue.add(coordEntry);
+            return generateParallelRenderQueue(simpleQueue, used, mapGenerationParameters).stream();
+        }).collect(Collectors.toCollection(ArrayDeque::new));
         map = adjustHeights(map, renderQueue);
         return map;
     }
 
+
+    /**
+     * Generate render queue method based on unparallel BFS
+     */
+    @Deprecated
     private Queue<CoordEntry> generateRenderQueue(Queue<CoordEntry> queue, Map<String, CoordEntry> used, MapGenerationParameters mapGen) {
         if (queue.isEmpty()) return queue;
+        queue.forEach(element -> used.put(element.getId(), element));
         Integer mapSize = mapGen.getMapSquareSize();
         Float minHeight = mapGen.getMapMinWaterHeight();
         Float stepDelta = mapGen.getMapHeightGradationLimit();
@@ -103,7 +116,7 @@ public class GenerationUtils {
                         boolean draw = true;
                         if (used.containsKey(newEntry.getId())) {
                             CoordEntry usedEntry = used.get(newEntry.getId());
-                            draw = checkHeights(usedEntry.getZ(), newEntry.getZ());
+                            draw = usedEntry.getZ() < newEntry.getZ();
                         }
                         if (draw) {
                             if (chaosFactor) {
@@ -116,8 +129,61 @@ public class GenerationUtils {
                 }
             }
         }
-        queue.forEach(element -> used.put(element.getId(), element));
         queue.addAll(generateRenderQueue(neighbors, used, mapGen));
+        return queue;
+    }
+
+    /**
+     * Generate render queue method based on parallel BFS on Stream API (fork/join tool)
+     * @param queue nodes to traverse on iteration
+     * @param used used nodes (volatile map for all threads, changes behavior of algorithm)
+     * @param mapGen generation parameters
+     * @return Render queue
+     */
+    private Queue<CoordEntry> generateParallelRenderQueue(Queue<CoordEntry> queue, Map<String, CoordEntry> used, MapGenerationParameters mapGen) {
+        if (queue.isEmpty()) return queue;
+        queue.forEach(element -> used.put(element.getId(), element));
+        Integer mapSize = mapGen.getMapSquareSize();
+        Float minHeight = mapGen.getMapMinWaterHeight();
+        Float stepDelta = mapGen.getMapHeightGradationLimit();
+        ArrayDeque<CoordEntry> neighbors = new ArrayDeque<>();
+        for (CoordEntry entry: queue) {
+            Integer x = entry.getX();
+            Integer y = entry.getY();
+            Float height = entry.getZ();
+            for (int i = 0; i < 8; i++) {
+                if (checkBorders(x, y, mapSize, i)) {
+                    Integer newX = x + neighborDeltas[i][0];
+                    Integer newY = y + neighborDeltas[i][1];
+                    Float currentDelta = getRandomGaussianDelta(0.0f, stepDelta);
+                    if (i > 3) { //diagonal entries
+                        currentDelta = (float)Math.sqrt(2) * currentDelta;
+                    }
+                    currentDelta = -currentDelta;
+                    if (height + currentDelta <= minHeight) continue;
+                    CoordEntry newEntry = new CoordEntry(newX, newY, height + currentDelta);
+                    boolean chaosFactor = randomGen.nextGaussian() >= 0;
+                    boolean draw = true;
+                    if (used.containsKey(newEntry.getId())) {
+                        CoordEntry usedEntry = used.get(newEntry.getId());
+                        draw = usedEntry.getZ() < newEntry.getZ();
+                    }
+                    if (draw) {
+                        if (chaosFactor) {
+                            neighbors.addFirst(newEntry);
+                        } else {
+                            neighbors.add(newEntry);
+                        }
+                    }
+                }
+            }
+        }
+        if (neighbors.isEmpty()) return queue;
+        queue.addAll(neighbors.parallelStream().flatMap(coordEntry -> {
+            Queue<CoordEntry> simpleQueue = new ArrayDeque<>();
+            simpleQueue.add(coordEntry);
+            return generateParallelRenderQueue(simpleQueue, used, mapGen).stream();
+        }).collect(Collectors.toCollection(ArrayDeque::new)));
         return queue;
     }
 
@@ -126,14 +192,12 @@ public class GenerationUtils {
              ((y + neighborDeltas[neighbor][1] >= 0) && (y + neighborDeltas[neighbor][1] < mapSize));
     }
 
-    private boolean checkHeights(Float z1, Float z2) {
-        return z2 > z1;
-    }
-
     private Entity[][] adjustHeights(Entity[][] map, Queue<CoordEntry> queue) {
         while (!queue.isEmpty()) {
             CoordEntry entry = queue.poll();
-            positions.get(map[entry.getX()][entry.getY()]).setZ(entry.getZ());
+            if (positions.get(map[entry.getX()][entry.getY()]).getZ() < entry.getZ()) {
+                positions.get(map[entry.getX()][entry.getY()]).setZ(entry.getZ());
+            }
         }
         return map;
     }

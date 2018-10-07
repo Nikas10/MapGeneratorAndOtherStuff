@@ -76,6 +76,7 @@ public class GameScreen implements Screen {
         multiplexer.addProcessor(new KeyboardInputProcessor(this));
         camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
         camera.update();
+        game.getEngineOperator().clearEntities();
         defineEntities();
         defineUiComponents();
     }

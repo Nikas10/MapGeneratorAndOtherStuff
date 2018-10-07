@@ -4,7 +4,6 @@ import com.badlogic.ashley.core.Engine;
 import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.nikas.trial.GameLauncher;
@@ -57,6 +56,10 @@ public class EngineOperator {
                     color, color, color, color);
         }
         shapeRenderer.end();
+    }
+
+    public void clearEntities() {
+        gameEngine.removeAllEntities();
     }
 
     private Color evaluateHeightColor(Float height, MapGenerationParameters mapGen) {
